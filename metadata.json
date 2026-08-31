@@ -1,0 +1,6 @@
+{
+  "name": "AudioFlow Downloader",
+  "description": "YouTube song search, track matching, queue management, and high-quality audio downloader powered by youtubedl-android",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

@@ -1,0 +1,37 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <group
+        android:pivotX="54"
+        android:pivotY="54">
+        <!-- Musical note background shape with gradient -->
+        <path
+            android:pathData="M64,30 L42,35 C40.5,35.3 39.5,36.7 39.5,38.2 L39.5,60.5 C37.8,59.6 35.8,59 33.5,59 C28.8,59 25,62.1 25,66 C25,69.9 28.8,73 33.5,73 C38,73 41.7,70.1 42.4,66.4 L42.5,47.5 L63.5,43 L63.5,56.5 C61.8,55.6 59.8,55 57.5,55 C52.8,55 49,58.1 49,62 C49,65.9 52.8,69 57.5,69 C62,69 65.7,66.1 66.4,62.4 L66.5,32.5 C66.5,31 65.4,29.7 64,30 Z">
+            <aapt:attr name="android:fillColor">
+                <gradient
+                    android:startX="25"
+                    android:startY="30"
+                    android:endX="66.5"
+                    android:endY="73"
+                    android:type="linear">
+                    <item android:color="#6366F1" android:offset="0.0" />
+                    <item android:color="#A855F7" android:offset="0.5" />
+                    <item android:color="#EC4899" android:offset="1.0" />
+                </gradient>
+            </aapt:attr>
+        </path>
+        <!-- Overlay Download Arrow Badge -->
+        <path
+            android:fillColor="#00E5FF"
+            android:pathData="M72,60 L84,60 L78,69 Z" />
+        <path
+            android:fillColor="#00E5FF"
+            android:pathData="M76,52 L80,52 L80,60 L76,60 Z" />
+        <path
+            android:fillColor="#00E5FF"
+            android:pathData="M71,72 L85,72 L85,74.5 L71,74.5 Z" />
+    </group>
+</vector>
