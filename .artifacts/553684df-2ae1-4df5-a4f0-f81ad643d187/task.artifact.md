@@ -1,0 +1,3 @@
+- [x] Create `ExpressiveNavigationBar.kt` with pill-shaped design and isolated state collection.
+- [x] Update `MainScreen.kt` to use the floating navigation overlay.
+- [x] Verify build and tab switching performance.

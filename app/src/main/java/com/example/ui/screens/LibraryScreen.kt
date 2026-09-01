@@ -61,16 +61,18 @@ fun LibraryScreen(
 
     val formatOptions = listOf("ALL", "MP3", "M4A", "OPUS", "FLAC", "WAV")
 
-    val filteredList = completedItems.filter { item ->
-        val matchesQuery = filterQuery.isBlank() ||
-                item.songTitle.contains(filterQuery, ignoreCase = true) ||
-                item.artist.contains(filterQuery, ignoreCase = true) ||
-                item.videoTitle.contains(filterQuery, ignoreCase = true)
+    val filteredList = remember(completedItems, filterQuery, selectedFormatFilter) {
+        completedItems.filter { item ->
+            val matchesQuery = filterQuery.isBlank() ||
+                    item.songTitle.contains(filterQuery, ignoreCase = true) ||
+                    item.artist.contains(filterQuery, ignoreCase = true) ||
+                    item.videoTitle.contains(filterQuery, ignoreCase = true)
 
-        val matchesFormat = selectedFormatFilter == "ALL" ||
-                item.audioFormat.equals(selectedFormatFilter, ignoreCase = true)
+            val matchesFormat = selectedFormatFilter == "ALL" ||
+                    item.audioFormat.equals(selectedFormatFilter, ignoreCase = true)
 
-        matchesQuery && matchesFormat
+            matchesQuery && matchesFormat
+        }
     }
 
     Column(
@@ -225,7 +227,7 @@ fun LibraryScreen(
                 modifier = Modifier
                     .fillMaxSize()
                     .testTag("library_track_list"),
-                contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 96.dp),
+                contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 120.dp),
                 verticalArrangement = Arrangement.spacedBy(10.dp)
             ) {
                 items(filteredList, key = { "lib_${it.id}" }) { item ->

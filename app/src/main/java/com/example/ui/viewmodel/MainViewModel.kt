@@ -12,11 +12,14 @@ import com.example.data.datastore.AppSettings
 import com.example.data.model.DownloadItem
 import com.example.data.model.SearchResultItem
 import com.example.data.repository.DownloadRepository
+import com.example.ui.navigation.MainDestination
 import com.yausername.youtubedl_android.YoutubeDL
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
@@ -46,6 +49,17 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     val settings: StateFlow<AppSettings> = repository.settingsFlow
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), AppSettings())
 
+    private val _currentDestination = MutableStateFlow(MainDestination.QUEUE)
+    val currentDestination = _currentDestination.asStateFlow()
+
+    val queueBadgeCount: StateFlow<Int> = combine(stagingItems, activeQueue) { staging, active ->
+        staging.size + active.size
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0)
+
+    val libraryBadgeCount: StateFlow<Int> = completedItems
+        .map { it.size }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0)
+
     private val _searchQuery = MutableStateFlow("")
     val searchQuery = _searchQuery.asStateFlow()
 
@@ -64,11 +78,21 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     private val _otaStatus = MutableStateFlow<OtaUpdateStatus>(OtaUpdateStatus.Idle)
     val otaStatus = _otaStatus.asStateFlow()
 
-    private val _currentYtDlpVersion = MutableStateFlow(repository.getYtDlpVersion())
+    private val _currentYtDlpVersion = MutableStateFlow("yt-dlp core")
     val currentYtDlpVersion = _currentYtDlpVersion.asStateFlow()
+
+    init {
+        viewModelScope.launch {
+            _currentYtDlpVersion.value = repository.getYtDlpVersion()
+        }
+    }
 
     fun updateSearchQuery(query: String) {
         _searchQuery.value = query
+    }
+
+    fun updateDestination(destination: MainDestination) {
+        _currentDestination.value = destination
     }
 
     fun submitSearch(query: String = _searchQuery.value) {

@@ -69,14 +69,16 @@ fun SettingsScreen(
     val otaStatus by viewModel.otaStatus.collectAsStateWithLifecycle()
     val currentVersion by viewModel.currentYtDlpVersion.collectAsStateWithLifecycle()
 
-    val formats = listOf("MP3", "M4A", "OPUS", "FLAC", "WAV")
-    val qualities = listOf(
-        "320k" to "320 kbps (High Quality)",
-        "256k" to "256 kbps (Standard High)",
-        "192k" to "192 kbps (Medium)",
-        "128k" to "128 kbps (Compact)",
-        "best" to "Best Available (VBR)"
-    )
+    val formats = remember { listOf("MP3", "M4A", "OPUS", "FLAC", "WAV") }
+    val qualities = remember {
+        listOf(
+            "320k" to "320 kbps (High Quality)",
+            "256k" to "256 kbps (Standard High)",
+            "192k" to "192 kbps (Medium)",
+            "128k" to "128 kbps (Compact)",
+            "best" to "Best Available (VBR)"
+        )
+    }
 
     var formatMenuExpanded by remember { mutableStateOf(false) }
     var qualityMenuExpanded by remember { mutableStateOf(false) }
@@ -85,7 +87,7 @@ fun SettingsScreen(
         modifier = modifier
             .fillMaxSize()
             .testTag("settings_screen"),
-        contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 96.dp),
+        contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 120.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         // Header
