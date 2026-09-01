@@ -20,9 +20,7 @@ android {
     versionCode = 1
     versionName = "1.0"
 
-    ndk {
-      abiFilters.addAll(listOf("arm64-v8a", "armeabi-v7a", "x86", "x86_64"))
-    }
+
 
     testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
   }
@@ -68,6 +66,15 @@ android {
   packaging {
     jniLibs {
       useLegacyPackaging = true
+    }
+  }
+
+  splits {
+    abi {
+      isEnable = true // Enables multiple APK generation per ABI
+      reset() // Clears default architectures
+      include("arm64-v8a", "armeabi-v7a") // Only build for these two
+      isUniversalApk = false // Prevents generating the massive 260MB fat universal APK
     }
   }
 }
