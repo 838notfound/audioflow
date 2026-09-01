@@ -84,49 +84,6 @@ fun MainScreen(
     Scaffold(
         modifier = modifier.fillMaxSize(),
         contentWindowInsets = WindowInsets.systemBars,
-        topBar = {
-            TopAppBar(
-                title = {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(10.dp)
-                    ) {
-                        Surface(
-                            shape = RoundedCornerShape(10.dp),
-                            color = ElectricIndigo,
-                            modifier = Modifier.size(36.dp)
-                        ) {
-                            Box(contentAlignment = Alignment.Center) {
-                                Icon(
-                                    imageVector = Icons.Default.Audiotrack,
-                                    contentDescription = null,
-                                    tint = Color.White,
-                                    modifier = Modifier.size(22.dp)
-                                )
-                            }
-                        }
-
-                        Column {
-                            Text(
-                                text = "AudioFlow",
-                                style = MaterialTheme.typography.titleMedium,
-                                fontWeight = FontWeight.Bold
-                            )
-                            Text(
-                                text = "YouTube Audio Extractor • yt-dlp",
-                                style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        }
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.surface,
-                    titleContentColor = MaterialTheme.colorScheme.onSurface
-                ),
-                modifier = Modifier.testTag("main_top_bar")
-            )
-        },
         bottomBar = {
             NavigationBar(
                 containerColor = MaterialTheme.colorScheme.surface,
