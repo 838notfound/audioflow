@@ -10,11 +10,11 @@ plugins {
 }
 
 android {
-  namespace = "com.example"
+  namespace = "com.eightnf.audioflow"
   compileSdk { version = release(36) { minorApiLevel = 1 } }
 
   defaultConfig {
-    applicationId = "com.aistudio.songdownloader.yxmqtp"
+    applicationId = "com.eightnf.audioflow"
     minSdk = 29
     targetSdk = 34
     versionCode = 1
@@ -50,7 +50,7 @@ android {
       proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
       signingConfig = signingConfigs.getByName("release")
     }
-    debug { signingConfig = signingConfigs.getByName("debugConfig") }
+    debug {}
   }
   compileOptions {
     sourceCompatibility = JavaVersion.VERSION_11

@@ -14,7 +14,7 @@ import androidx.core.app.NotificationCompat
 import androidx.core.app.ServiceCompat
 import com.example.MainActivity
 import com.example.MainApplication
-import com.example.R
+import com.eightnf.audioflow.R
 import com.example.data.datastore.AppSettings
 import com.example.data.datastore.SettingsDataStore
 import com.example.data.local.AppDatabase

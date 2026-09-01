@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Song Downloader</string>
+    <string name="app_name">AudioFlow</string>
     <string name="notification_channel_name">Audio Download Service</string>
     <string name="notification_channel_desc">Shows active audio download progress and status</string>
 </resources>

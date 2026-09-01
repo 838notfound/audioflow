@@ -23,6 +23,6 @@ dependencyResolutionManagement {
   }
 }
 
-rootProject.name = "Song Downloader"
+rootProject.name = "AudioFlow"
 
 include(":app")

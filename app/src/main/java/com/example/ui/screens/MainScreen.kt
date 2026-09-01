@@ -108,7 +108,7 @@ fun MainScreen(
 
                         Column {
                             Text(
-                                text = "Song Downloader",
+                                text = "AudioFlow",
                                 style = MaterialTheme.typography.titleMedium,
                                 fontWeight = FontWeight.Bold
                             )
