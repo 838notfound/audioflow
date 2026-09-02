@@ -85,11 +85,6 @@ fun QueueScreen(
                         style = MaterialTheme.typography.headlineSmall,
                         fontWeight = FontWeight.Bold
                     )
-                    Text(
-                        text = "Search single songs or batch paste YouTube track lists",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
 
                     Spacer(modifier = Modifier.height(14.dp))
 
@@ -100,7 +95,7 @@ fun QueueScreen(
                         OutlinedTextField(
                             value = searchQuery,
                             onValueChange = { viewModel.updateSearchQuery(it) },
-                            placeholder = { Text("Search song name or artist...") },
+                            placeholder = { Text("Search for a song...") },
                             leadingIcon = {
                                 Icon(
                                     imageVector = Icons.Default.Search,

@@ -280,7 +280,9 @@ class DownloadService : Service() {
                 sourceFile = downloadedFile,
                 title = item.songTitle.ifEmpty { item.videoTitle },
                 artist = item.artist.ifEmpty { item.channelName },
-                format = settings.audioFormat
+                format = settings.audioFormat,
+                baseFolder = settings.downloadBaseFolder,
+                subfolder = settings.downloadSubfolder
             )
 
             // Cleanup temp file

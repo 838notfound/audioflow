@@ -2,11 +2,11 @@ package com.example.engine
 
 import android.content.Context
 import android.util.Log
+import android.util.LruCache
 import com.example.data.datastore.AppSettings
 import com.example.data.model.DownloadItem
 import com.example.data.model.DownloadStatus
 import com.example.data.model.SearchResultItem
-import com.yausername.youtubedl_android.DownloadProgressCallback
 import com.yausername.youtubedl_android.YoutubeDL
 import com.yausername.youtubedl_android.YoutubeDLException
 import com.yausername.youtubedl_android.YoutubeDLRequest
@@ -17,7 +17,6 @@ import org.json.JSONArray
 import org.json.JSONObject
 import java.io.BufferedReader
 import java.io.File
-import java.io.InputStreamReader
 import java.net.HttpURLConnection
 import java.net.URL
 import java.net.URLEncoder
@@ -27,35 +26,59 @@ class YoutubeDownloadEngine(private val context: Context) {
 
     companion object {
         private const val TAG = "YoutubeDownloadEngine"
+        private const val CACHE_SIZE = 100
     }
+
+    // In-memory cache for search results to make repeated/batch searches near-instant
+    private val searchCache = LruCache<String, List<SearchResultItem>>(CACHE_SIZE)
 
     suspend fun searchTracks(query: String, count: Int = 5): List<SearchResultItem> = withContext(Dispatchers.IO) {
         val trimmed = query.trim()
         if (trimmed.isEmpty()) return@withContext emptyList()
 
-        // Attempt 1: Native yt-dlp search via YoutubeDL execute
+        // Cache lookup
+        searchCache.get(trimmed)?.let {
+            Log.d(TAG, "Cache hit for query: $trimmed")
+            return@withContext it
+        }
+
+        // Tier 1: YouTube InnerTube API (Fastest, ~200ms)
         try {
-            val results = searchWithYtDlp(trimmed, count)
+            val results = searchWithInnertube(trimmed, count)
             if (results.isNotEmpty()) {
-                Log.d(TAG, "Search via yt-dlp successful: found ${results.size} tracks")
+                Log.d(TAG, "Search via InnerTube successful: found ${results.size} tracks")
+                searchCache.put(trimmed, results)
                 return@withContext results
             }
         } catch (e: Exception) {
-            Log.w(TAG, "yt-dlp search attempt failed (${e.message}), trying lightweight fallback", e)
+            Log.w(TAG, "InnerTube search failed, trying web scraper fallback", e)
         }
 
-        // Attempt 2: High-speed lightweight YouTube search fallback
+        // Tier 2: Lightweight Web Scraper (Fast, ~400ms)
         try {
             val fallbackResults = searchWithLightweightWeb(trimmed, count)
             if (fallbackResults.isNotEmpty()) {
                 Log.d(TAG, "Search via web client successful: found ${fallbackResults.size} tracks")
+                searchCache.put(trimmed, fallbackResults)
                 return@withContext fallbackResults
             }
         } catch (e: Exception) {
             Log.e(TAG, "Lightweight web search failed", e)
         }
 
-        // Return a baseline search candidate from query if both fail
+        // Tier 3: Heavyweight yt-dlp (Slowest, ~15-25s - Last Resort)
+        try {
+            Log.i(TAG, "Falling back to heavyweight yt-dlp search for: $trimmed")
+            val results = searchWithYtDlp(trimmed, count)
+            if (results.isNotEmpty()) {
+                searchCache.put(trimmed, results)
+                return@withContext results
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "All search tiers failed for: $trimmed", e)
+        }
+
+        // Baseline fallback result
         listOf(
             SearchResultItem(
                 videoId = "",
@@ -69,49 +92,74 @@ class YoutubeDownloadEngine(private val context: Context) {
         )
     }
 
-    private fun searchWithYtDlp(query: String, count: Int): List<SearchResultItem> {
-        val request = YoutubeDLRequest("ytsearch$count:$query").apply {
-            addOption("--dump-single-json")
-            addOption("--flat-playlist")
-            addOption("--no-warnings")
-            addOption("--ignore-errors")
-            addOption("--no-playlist")
+    /**
+     * High-speed search using the YouTube Innertube API (/v1/search)
+     * This is the same API used by the YouTube mobile apps and web client.
+     */
+    private fun searchWithInnertube(query: String, count: Int): List<SearchResultItem> {
+        val url = URL("https://www.youtube.com/youtubei/v1/search?prettyPrint=false")
+        val conn = (url.openConnection() as HttpURLConnection).apply {
+            requestMethod = "POST"
+            doOutput = true
+            connectTimeout = 5000
+            readTimeout = 5000
+            setRequestProperty("Content-Type", "application/json")
+            setRequestProperty("User-Agent", "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36")
         }
 
-        val response: YoutubeDLResponse = YoutubeDL.getInstance().execute(request)
-        val out = response.out ?: return emptyList()
+        // Minimal required context for Innertube
+        val body = JSONObject().apply {
+            put("context", JSONObject().apply {
+                put("client", JSONObject().apply {
+                    put("clientName", "WEB")
+                    put("clientVersion", "2.20240101.01.00")
+                })
+            })
+            put("query", query)
+        }
 
+        conn.outputStream.use { it.write(body.toString().toByteArray()) }
+
+        val response = conn.inputStream.bufferedReader().use(BufferedReader::readText)
+        val json = JSONObject(response)
         val results = mutableListOf<SearchResultItem>()
-        val json = JSONObject(out)
-        val entries = json.optJSONArray("entries") ?: JSONArray()
 
-        for (i in 0 until entries.length()) {
-            val entry = entries.optJSONObject(i) ?: continue
-            val id = entry.optString("id", "")
-            val title = entry.optString("title", query)
-            val uploader = entry.optString("uploader", entry.optString("channel", "Unknown Artist"))
-            val durationSec = entry.optInt("duration", 0)
-            val durationStr = formatDuration(durationSec)
-            val url = entry.optString("url", if (id.isNotEmpty()) "https://www.youtube.com/watch?v=$id" else "")
-            val thumbnail = entry.optString("thumbnail", if (id.isNotEmpty()) "https://i.ytimg.com/vi/$id/hqdefault.jpg" else "")
+        // Navigate the complex Innertube response tree
+        val contents = json.optJSONObject("contents")
+            ?.optJSONObject("twoColumnSearchResultsRenderer")
+            ?.optJSONObject("primaryContents")
+            ?.optJSONObject("sectionListRenderer")
+            ?.optJSONArray("contents") ?: return emptyList()
 
-            // Heuristic match confidence
-            val confidence = calculateConfidence(query, title, uploader, i)
+        for (i in 0 until contents.length()) {
+            val itemSection = contents.optJSONObject(i)?.optJSONObject("itemSectionRenderer") ?: continue
+            val items = itemSection.optJSONArray("contents") ?: continue
 
-            results.add(
-                SearchResultItem(
-                    videoId = id,
-                    title = title,
-                    channel = uploader,
-                    duration = durationStr,
-                    durationSeconds = durationSec,
-                    thumbnailUrl = thumbnail,
-                    url = if (url.startsWith("http")) url else "https://www.youtube.com/watch?v=$id",
-                    confidence = confidence
-                )
-            )
+            for (j in 0 until items.length()) {
+                if (results.size >= count) break
+                val video = items.optJSONObject(j)?.optJSONObject("videoRenderer") ?: continue
+                
+                val videoId = video.optString("videoId")
+                val title = video.optJSONObject("title")?.optJSONArray("runs")?.optJSONObject(0)?.optString("text") ?: ""
+                val channel = video.optJSONObject("longBylineText")?.optJSONArray("runs")?.optJSONObject(0)?.optString("text") ?: ""
+                val duration = video.optJSONObject("lengthText")?.optString("simpleText") ?: "3:40"
+                val thumbnail = "https://i.ytimg.com/vi/$videoId/mqdefault.jpg"
+
+                if (videoId.isNotEmpty()) {
+                    results.add(
+                        SearchResultItem(
+                            videoId = videoId,
+                            title = title,
+                            channel = channel,
+                            duration = duration,
+                            thumbnailUrl = thumbnail,
+                            url = "https://www.youtube.com/watch?v=$videoId",
+                            confidence = calculateConfidence(query, title, channel, results.size)
+                        )
+                    )
+                }
+            }
         }
-
         return results
     }
 
@@ -121,10 +169,9 @@ class YoutubeDownloadEngine(private val context: Context) {
         val url = URL(searchUrl)
         val conn = (url.openConnection() as HttpURLConnection).apply {
             requestMethod = "GET"
-            connectTimeout = 8000
-            readTimeout = 8000
+            connectTimeout = 5000
+            readTimeout = 5000
             setRequestProperty("User-Agent", "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36")
-            setRequestProperty("Accept-Language", "en-US,en;q=0.9")
         }
 
         val content = conn.inputStream.bufferedReader().use(BufferedReader::readText)
@@ -161,7 +208,6 @@ class YoutubeDownloadEngine(private val context: Context) {
                         val duration = video.optJSONObject("lengthText")?.optString("simpleText", "3:30") ?: "3:30"
                         val thumb = "https://i.ytimg.com/vi/$videoId/hqdefault.jpg"
 
-                        val confidence = calculateConfidence(query, title, channel, results.size)
                         results.add(
                             SearchResultItem(
                                 videoId = videoId,
@@ -170,36 +216,54 @@ class YoutubeDownloadEngine(private val context: Context) {
                                 duration = duration,
                                 thumbnailUrl = thumb,
                                 url = "https://www.youtube.com/watch?v=$videoId",
-                                confidence = confidence
+                                confidence = calculateConfidence(query, title, channel, results.size)
                             )
                         )
                     }
                 }
             }
         }
+        return results
+    }
 
-        // Secondary fallback regex if json parsing fails
-        if (results.isEmpty()) {
-            val videoIdRegex = Regex("\"videoId\":\"([a-zA-Z0-9_-]{11})\"")
-            val titleRegex = Regex("\"title\":\\{\"runs\":\\[\\{\"text\":\"(.*?)\"\\}\\]")
-            val matches = videoIdRegex.findAll(content).toList()
+    private fun searchWithYtDlp(query: String, count: Int): List<SearchResultItem> {
+        val request = YoutubeDLRequest("ytsearch$count:$query").apply {
+            addOption("--dump-single-json")
+            addOption("--flat-playlist")
+            addOption("--no-warnings")
+            addOption("--ignore-errors")
+            addOption("--no-playlist")
+        }
 
-            for (m in matches.take(count)) {
-                val vid = m.groupValues[1]
-                if (results.none { it.videoId == vid }) {
-                    results.add(
-                        SearchResultItem(
-                            videoId = vid,
-                            title = query,
-                            channel = "YouTube",
-                            duration = "3:30",
-                            thumbnailUrl = "https://i.ytimg.com/vi/$vid/hqdefault.jpg",
-                            url = "https://www.youtube.com/watch?v=$vid",
-                            confidence = 90 - (results.size * 3)
-                        )
-                    )
-                }
-            }
+        val response: YoutubeDLResponse = YoutubeDL.getInstance().execute(request)
+        val out = response.out ?: return emptyList()
+
+        val results = mutableListOf<SearchResultItem>()
+        val json = JSONObject(out)
+        val entries = json.optJSONArray("entries") ?: JSONArray()
+
+        for (i in 0 until entries.length()) {
+            val entry = entries.optJSONObject(i) ?: continue
+            val id = entry.optString("id", "")
+            val title = entry.optString("title", query)
+            val uploader = entry.optString("uploader", entry.optString("channel", "Unknown Artist"))
+            val durationSec = entry.optInt("duration", 0)
+            val durationStr = formatDuration(durationSec)
+            val url = entry.optString("url", if (id.isNotEmpty()) "https://www.youtube.com/watch?v=$id" else "")
+            val thumbnail = entry.optString("thumbnail", if (id.isNotEmpty()) "https://i.ytimg.com/vi/$id/hqdefault.jpg" else "")
+
+            results.add(
+                SearchResultItem(
+                    videoId = id,
+                    title = title,
+                    channel = uploader,
+                    duration = durationStr,
+                    durationSeconds = durationSec,
+                    thumbnailUrl = thumbnail,
+                    url = if (url.startsWith("http")) url else "https://www.youtube.com/watch?v=$id",
+                    confidence = calculateConfidence(query, title, uploader, i)
+                )
+            )
         }
 
         return results

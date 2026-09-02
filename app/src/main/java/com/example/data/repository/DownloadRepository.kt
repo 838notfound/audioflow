@@ -12,8 +12,13 @@ import com.example.engine.YoutubeDownloadEngine
 import com.example.service.DownloadService
 import com.yausername.youtubedl_android.YoutubeDL
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.sync.Semaphore
+import kotlinx.coroutines.sync.withPermit
 import kotlinx.coroutines.withContext
 import org.json.JSONArray
 import org.json.JSONObject
@@ -86,19 +91,23 @@ class DownloadRepository(
         }
     }
 
-    suspend fun batchSearchAndEnqueue(queries: List<String>): Int = withContext(Dispatchers.IO) {
-        var addedCount = 0
-        val settings = settingsFlow.first()
+    suspend fun batchSearchAndEnqueue(queries: List<String>): Int = coroutineScope {
+        val uniqueQueries = queries.map { it.trim() }.filter { it.isNotBlank() }.distinct()
+        if (uniqueQueries.isEmpty()) return@coroutineScope 0
 
-        for (q in queries) {
-            val clean = q.trim()
-            if (clean.isNotBlank()) {
-                val res = searchAndEnqueue(clean)
-                if (res.isSuccess) {
-                    addedCount++
+        val settings = settingsFlow.first()
+        val semaphore = Semaphore(6) // Process up to 6 searches in parallel
+
+        val deferredResults = uniqueQueries.map { query ->
+            async(Dispatchers.IO) {
+                semaphore.withPermit {
+                    searchAndEnqueue(query).isSuccess
                 }
             }
         }
+
+        val results = deferredResults.awaitAll()
+        val addedCount = results.count { it }
 
         if (settings.autoApproveMatches && addedCount > 0) {
             DownloadService.startQueue(context)

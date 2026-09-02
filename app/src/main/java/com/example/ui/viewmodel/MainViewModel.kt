@@ -227,6 +227,18 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
+    fun setDownloadBaseFolder(baseFolder: String) {
+        viewModelScope.launch {
+            repository.settingsDataStore.setDownloadBaseFolder(baseFolder)
+        }
+    }
+
+    fun setDownloadSubfolder(subfolder: String) {
+        viewModelScope.launch {
+            repository.settingsDataStore.setDownloadSubfolder(subfolder)
+        }
+    }
+
     // OTA Updater
     fun triggerOtaUpdate() {
         viewModelScope.launch {

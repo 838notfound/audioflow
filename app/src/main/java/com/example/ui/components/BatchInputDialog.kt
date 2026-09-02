@@ -43,7 +43,7 @@ fun BatchInputDialog(
         onDismissRequest = onDismiss,
         title = {
             Text(
-                text = "Batch Song Search",
+                text = "Batch Input",
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold
             )
@@ -51,7 +51,7 @@ fun BatchInputDialog(
         text = {
             Column(modifier = Modifier.fillMaxWidth()) {
                 Text(
-                    text = "Enter or paste song names separated by newlines or commas. Each track will be matched automatically.",
+                    text = "Enter or paste song names separated by newlines or commas. Each track will be matched separately",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )

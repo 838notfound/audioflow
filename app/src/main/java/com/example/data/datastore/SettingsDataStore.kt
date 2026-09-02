@@ -21,7 +21,9 @@ data class AppSettings(
     val autoApproveMatches: Boolean = false,
     val addMetadata: Boolean = true,
     val embedThumbnail: Boolean = true,
-    val lastKnownVersion: String = "yt-dlp core"
+    val lastKnownVersion: String = "yt-dlp core",
+    val downloadBaseFolder: String = "Music",
+    val downloadSubfolder: String = "AudioFlow"
 )
 
 class SettingsDataStore(private val context: Context) {
@@ -35,6 +37,8 @@ class SettingsDataStore(private val context: Context) {
         val KEY_ADD_METADATA = booleanPreferencesKey("add_metadata")
         val KEY_EMBED_THUMBNAIL = booleanPreferencesKey("embed_thumbnail")
         val KEY_LAST_KNOWN_VERSION = stringPreferencesKey("last_known_version")
+        val KEY_DOWNLOAD_BASE_FOLDER = stringPreferencesKey("download_base_folder")
+        val KEY_DOWNLOAD_SUBFOLDER = stringPreferencesKey("download_subfolder")
     }
 
     val settingsFlow: Flow<AppSettings> = context.dataStore.data.map { preferences ->
@@ -46,7 +50,9 @@ class SettingsDataStore(private val context: Context) {
             autoApproveMatches = preferences[KEY_AUTO_APPROVE] ?: false,
             addMetadata = preferences[KEY_ADD_METADATA] ?: true,
             embedThumbnail = preferences[KEY_EMBED_THUMBNAIL] ?: true,
-            lastKnownVersion = preferences[KEY_LAST_KNOWN_VERSION] ?: "yt-dlp core"
+            lastKnownVersion = preferences[KEY_LAST_KNOWN_VERSION] ?: "yt-dlp core",
+            downloadBaseFolder = preferences[KEY_DOWNLOAD_BASE_FOLDER] ?: "Music",
+            downloadSubfolder = preferences[KEY_DOWNLOAD_SUBFOLDER] ?: "AudioFlow"
         )
     }
 
@@ -80,5 +86,15 @@ class SettingsDataStore(private val context: Context) {
 
     suspend fun setLastKnownVersion(version: String) {
         context.dataStore.edit { it[KEY_LAST_KNOWN_VERSION] = version }
+    }
+
+    suspend fun setDownloadBaseFolder(baseFolder: String) {
+        context.dataStore.edit { it[KEY_DOWNLOAD_BASE_FOLDER] = baseFolder }
+    }
+
+    suspend fun setDownloadSubfolder(subfolder: String) {
+        val sanitized = subfolder.replace(Regex("[\\\\/:*?\"<>|]"), "_").trim()
+        val finalFolder = if (sanitized.isBlank()) "AudioFlow" else sanitized
+        context.dataStore.edit { it[KEY_DOWNLOAD_SUBFOLDER] = finalFolder }
     }
 }

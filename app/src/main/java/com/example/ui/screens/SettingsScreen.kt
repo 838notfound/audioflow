@@ -75,8 +75,11 @@ fun SettingsScreen(
         )
     }
 
+    val baseFolders = remember { listOf("Music", "Download", "Podcasts", "Audiobooks") }
+
     var formatMenuExpanded by remember { mutableStateOf(false) }
     var qualityMenuExpanded by remember { mutableStateOf(false) }
+    var baseFolderMenuExpanded by remember { mutableStateOf(false) }
 
     LazyColumn(
         modifier = modifier
@@ -93,17 +96,12 @@ fun SettingsScreen(
                     style = MaterialTheme.typography.headlineSmall,
                     fontWeight = FontWeight.Bold
                 )
-                Text(
-                    text = "Configure audio formats, quality, and downloader engine",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
             }
         }
 
         // Section 1: Audio Encoding
         item {
-            SettingsCategoryCard(title = "Audio Encoding & Format", icon = Icons.Default.Audiotrack) {
+            SettingsCategoryCard(title = "Download Settings", icon = Icons.Default.Audiotrack) {
                 // Format Selector Dropdown
                 ExposedDropdownMenuBox(
                     expanded = formatMenuExpanded,
@@ -183,9 +181,99 @@ fun SettingsScreen(
             }
         }
 
-        // Section 2: Engine & Tagging
+        // Section 2: Storage & Scoped Storage Directory Selection
         item {
-            SettingsCategoryCard(title = "Engine & Metadata", icon = Icons.Default.Tune) {
+            SettingsCategoryCard(title = "Download Location", icon = Icons.Default.Folder) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = "Active Path:",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Spacer(modifier = Modifier.height(2.dp))
+                        Text(
+                            text = "${settings.downloadBaseFolder}/${settings.downloadSubfolder}/",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    }
+                    Surface(
+                        shape = RoundedCornerShape(6.dp),
+                        color = MaterialTheme.colorScheme.primaryContainer
+                    ) {
+                        Text(
+                            text = "Scoped Storage",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onPrimaryContainer,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(14.dp))
+
+                // Base Directory Dropdown Selector
+                ExposedDropdownMenuBox(
+                    expanded = baseFolderMenuExpanded,
+                    onExpandedChange = { baseFolderMenuExpanded = !baseFolderMenuExpanded },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    OutlinedTextField(
+                        value = "${settings.downloadBaseFolder}/",
+                        onValueChange = {},
+                        readOnly = true,
+                        label = { Text("Base Storage Directory") },
+                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = baseFolderMenuExpanded) },
+                        colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors(),
+                        shape = RoundedCornerShape(10.dp),
+                        modifier = Modifier
+                            .menuAnchor(MenuAnchorType.PrimaryNotEditable)
+                            .fillMaxWidth()
+                            .testTag("base_folder_dropdown")
+                    )
+
+                    ExposedDropdownMenu(
+                        expanded = baseFolderMenuExpanded,
+                        onDismissRequest = { baseFolderMenuExpanded = false }
+                    ) {
+                        baseFolders.forEach { folder ->
+                            DropdownMenuItem(
+                                text = { Text("$folder/", fontWeight = if (settings.downloadBaseFolder.equals(folder, ignoreCase = true)) FontWeight.Bold else FontWeight.Normal) },
+                                onClick = {
+                                    viewModel.setDownloadBaseFolder(folder)
+                                    baseFolderMenuExpanded = false
+                                }
+                            )
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(14.dp))
+
+                // Subfolder Text Field Input
+                OutlinedTextField(
+                    value = settings.downloadSubfolder,
+                    onValueChange = { viewModel.setDownloadSubfolder(it) },
+                    label = { Text("Custom Subfolder Name") },
+                    placeholder = { Text("AudioFlow") },
+                    singleLine = true,
+                    shape = RoundedCornerShape(10.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .testTag("subfolder_input_text_field")
+                )
+            }
+        }
+
+        // Section 3: Engine & Tagging
+        item {
+            SettingsCategoryCard(title = "Advanced Settings", icon = Icons.Default.Tune) {
                 // Aria2c multi-connection switch
                 SettingsSwitchRow(
                     title = "Aria2c Multi-connection Acceleration",
@@ -231,42 +319,6 @@ fun SettingsScreen(
                     onCheckedChange = { viewModel.setEmbedThumbnail(it) },
                     testTag = "embed_thumbnail_switch"
                 )
-            }
-        }
-
-        // Section 3: Storage & Scoped Storage
-        item {
-            SettingsCategoryCard(title = "Storage & MediaStore", icon = Icons.Default.Folder) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text(
-                            text = "Save Location",
-                            style = MaterialTheme.typography.bodyMedium,
-                            fontWeight = FontWeight.SemiBold
-                        )
-                        Spacer(modifier = Modifier.height(2.dp))
-                        Text(
-                            text = "Music/SongDownloader/ (MediaStore Scoped Storage)",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                    Surface(
-                        shape = RoundedCornerShape(6.dp),
-                        color = MaterialTheme.colorScheme.primaryContainer
-                    ) {
-                        Text(
-                            text = "Android 10+ Ready",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onPrimaryContainer,
-                            fontWeight = FontWeight.Bold,
-                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
-                        )
-                    }
-                }
             }
         }
 
