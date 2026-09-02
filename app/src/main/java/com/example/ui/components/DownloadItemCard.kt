@@ -39,9 +39,6 @@ import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.example.data.model.DownloadItem
 import com.example.data.model.DownloadStatus
-import com.example.ui.theme.AmberSuccess
-import com.example.ui.theme.CoralError
-import com.example.ui.theme.NeonCyan
 
 @Composable
 fun DownloadItemCard(
@@ -61,9 +58,9 @@ fun DownloadItemCard(
             .testTag("download_item_card_${item.id}"),
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.7f)
+            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
         ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
     ) {
         Column(
             modifier = Modifier
@@ -178,7 +175,7 @@ fun DownloadItemCard(
                         .fillMaxWidth()
                         .height(6.dp)
                         .clip(RoundedCornerShape(3.dp)),
-                    color = if (item.status == DownloadStatus.EXTRACTING_AUDIO) NeonCyan else MaterialTheme.colorScheme.primary,
+                    color = MaterialTheme.colorScheme.primary,
                     trackColor = MaterialTheme.colorScheme.surface
                 )
 
@@ -226,7 +223,7 @@ fun DownloadItemCard(
                 Text(
                     text = item.errorMessage ?: "Download failed",
                     style = MaterialTheme.typography.labelSmall,
-                    color = CoralError,
+                    color = MaterialTheme.colorScheme.error,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis
                 )
@@ -238,13 +235,13 @@ fun DownloadItemCard(
 @Composable
 fun StatusPill(status: DownloadStatus) {
     val (bgColor, textColor, label) = when (status) {
-        DownloadStatus.STAGING -> Triple(MaterialTheme.colorScheme.primary.copy(alpha = 0.15f), MaterialTheme.colorScheme.primary, "Review Match")
-        DownloadStatus.QUEUED -> Triple(MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.7f), MaterialTheme.colorScheme.secondary, "Queued")
-        DownloadStatus.DOWNLOADING -> Triple(NeonCyan.copy(alpha = 0.2f), NeonCyan, "Downloading")
-        DownloadStatus.EXTRACTING_AUDIO -> Triple(MaterialTheme.colorScheme.tertiary.copy(alpha = 0.2f), MaterialTheme.colorScheme.tertiary, "Converting")
-        DownloadStatus.COMPLETED -> Triple(AmberSuccess.copy(alpha = 0.2f), AmberSuccess, "Completed")
-        DownloadStatus.FAILED -> Triple(CoralError.copy(alpha = 0.2f), CoralError, "Failed")
-        DownloadStatus.CANCELLED -> Triple(Color.Gray.copy(alpha = 0.2f), Color.Gray, "Cancelled")
+        DownloadStatus.STAGING -> Triple(MaterialTheme.colorScheme.primaryContainer, MaterialTheme.colorScheme.onPrimaryContainer, "Review Match")
+        DownloadStatus.QUEUED -> Triple(MaterialTheme.colorScheme.secondaryContainer, MaterialTheme.colorScheme.onSecondaryContainer, "Queued")
+        DownloadStatus.DOWNLOADING -> Triple(MaterialTheme.colorScheme.tertiaryContainer, MaterialTheme.colorScheme.onTertiaryContainer, "Downloading")
+        DownloadStatus.EXTRACTING_AUDIO -> Triple(MaterialTheme.colorScheme.tertiaryContainer, MaterialTheme.colorScheme.onTertiaryContainer, "Converting")
+        DownloadStatus.COMPLETED -> Triple(MaterialTheme.colorScheme.secondaryContainer, MaterialTheme.colorScheme.onSecondaryContainer, "Completed")
+        DownloadStatus.FAILED -> Triple(MaterialTheme.colorScheme.errorContainer, MaterialTheme.colorScheme.onErrorContainer, "Failed")
+        DownloadStatus.CANCELLED -> Triple(MaterialTheme.colorScheme.surfaceVariant, MaterialTheme.colorScheme.onSurfaceVariant, "Cancelled")
     }
 
     Surface(

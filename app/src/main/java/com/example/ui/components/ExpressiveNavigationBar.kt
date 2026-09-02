@@ -34,7 +34,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.ui.navigation.MainDestination
-import com.example.ui.theme.NeonCyan
 import com.example.ui.viewmodel.MainViewModel
 
 @Composable
@@ -93,13 +92,13 @@ private fun ExpressiveNavItem(
     onClick: () -> Unit
 ) {
     val containerColor by animateColorAsState(
-        targetValue = if (isSelected) MaterialTheme.colorScheme.primaryContainer else Color.Transparent,
+        targetValue = if (isSelected) MaterialTheme.colorScheme.secondaryContainer else Color.Transparent,
         animationSpec = spring(stiffness = Spring.StiffnessMediumLow),
         label = "container_color"
     )
     
     val contentColor by animateColorAsState(
-        targetValue = if (isSelected) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant,
+        targetValue = if (isSelected) MaterialTheme.colorScheme.onSecondaryContainer else MaterialTheme.colorScheme.onSurfaceVariant,
         label = "content_color"
     )
 
@@ -132,8 +131,8 @@ private fun ExpressiveNavItem(
                 badge = {
                     if (badgeCount > 0) {
                         Badge(
-                            containerColor = if (destination == MainDestination.QUEUE) NeonCyan else MaterialTheme.colorScheme.primary,
-                            contentColor = if (destination == MainDestination.QUEUE) Color.Black else Color.White,
+                            containerColor = MaterialTheme.colorScheme.primary,
+                            contentColor = MaterialTheme.colorScheme.onPrimary,
                             modifier = Modifier.padding(bottom = 4.dp)
                         ) {
                             Text("$badgeCount", fontSize = 10.sp, fontWeight = FontWeight.Bold)

@@ -17,15 +17,12 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.example.ui.theme.AmberSuccess
-import com.example.ui.theme.CoralError
 import com.example.ui.viewmodel.OtaUpdateStatus
 
 @Composable
@@ -80,7 +77,7 @@ fun OtaUpdateDialog(
                             Icon(
                                 imageVector = Icons.Default.CheckCircle,
                                 contentDescription = null,
-                                tint = AmberSuccess,
+                                tint = MaterialTheme.colorScheme.primary,
                                 modifier = Modifier.size(28.dp)
                             )
                             Spacer(modifier = Modifier.width(16.dp))
@@ -98,14 +95,14 @@ fun OtaUpdateDialog(
                             Icon(
                                 imageVector = Icons.Default.Error,
                                 contentDescription = null,
-                                tint = CoralError,
+                                tint = MaterialTheme.colorScheme.error,
                                 modifier = Modifier.size(28.dp)
                             )
                             Spacer(modifier = Modifier.width(16.dp))
                             Text(
                                 text = status.error,
                                 style = MaterialTheme.typography.bodyMedium,
-                                color = CoralError
+                                color = MaterialTheme.colorScheme.error
                             )
                         }
                     }

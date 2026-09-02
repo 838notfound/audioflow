@@ -38,7 +38,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.example.data.model.DownloadItem
-import com.example.ui.theme.NeonCyan
 
 @Composable
 fun LibraryTrackCard(
@@ -57,9 +56,9 @@ fun LibraryTrackCard(
             .testTag("library_track_card_${item.id}"),
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f)
+            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
         ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
     ) {
         Row(
             modifier = Modifier
@@ -70,7 +69,7 @@ fun LibraryTrackCard(
             // Thumbnail with Play overlay icon
             Box(
                 modifier = Modifier
-                    .size(68.dp)
+                    .size(64.dp)
                     .clip(RoundedCornerShape(10.dp))
                     .background(MaterialTheme.colorScheme.surface)
             ) {
@@ -85,12 +84,12 @@ fun LibraryTrackCard(
                 Surface(
                     modifier = Modifier.align(Alignment.Center),
                     shape = CircleShape,
-                    color = Color.Black.copy(alpha = 0.65f)
+                    color = Color.Black.copy(alpha = 0.6f)
                 ) {
                     Icon(
                         imageVector = Icons.Default.PlayArrow,
                         contentDescription = "Play",
-                        tint = NeonCyan,
+                        tint = Color.White,
                         modifier = Modifier
                             .padding(6.dp)
                             .size(20.dp)
@@ -107,7 +106,7 @@ fun LibraryTrackCard(
                 Text(
                     text = item.songTitle.ifEmpty { item.videoTitle },
                     style = MaterialTheme.typography.titleSmall,
-                    fontWeight = FontWeight.SemiBold,
+                    fontWeight = FontWeight.Bold,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
@@ -129,34 +128,28 @@ fun LibraryTrackCard(
                 ) {
                     Surface(
                         shape = RoundedCornerShape(4.dp),
-                        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)
+                        color = MaterialTheme.colorScheme.secondaryContainer
                     ) {
                         Text(
                             text = item.audioFormat.uppercase(),
                             style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp, fontWeight = FontWeight.Bold),
-                            color = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.padding(horizontal = 5.dp, vertical = 2.dp)
+                            color = MaterialTheme.colorScheme.onSecondaryContainer,
+                            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
                         )
                     }
 
                     if (item.audioQuality.isNotBlank()) {
-                        Surface(
-                            shape = RoundedCornerShape(4.dp),
-                            color = MaterialTheme.colorScheme.surface
-                        ) {
-                            Text(
-                                text = item.audioQuality,
-                                style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                modifier = Modifier.padding(horizontal = 5.dp, vertical = 2.dp)
-                            )
-                        }
+                        Text(
+                            text = item.audioQuality,
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
                     }
 
                     if (formattedSize.isNotBlank()) {
                         Text(
                             text = "• $formattedSize",
-                            style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
+                            style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
