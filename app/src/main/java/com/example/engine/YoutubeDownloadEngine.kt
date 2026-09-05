@@ -319,6 +319,7 @@ class YoutubeDownloadEngine(private val context: Context) {
         val filenameTemplate = "${downloadDir.absolutePath}/%(id)s_audio.%(ext)s"
 
         val request = YoutubeDLRequest(item.youtubeUrl.ifEmpty { "https://www.youtube.com/watch?v=${item.youtubeVideoId}" }).apply {
+            addOption("-f", "bestaudio/best")
             addOption("-x")
             addOption("--audio-format", targetFormat)
             addOption("--audio-quality", targetQuality)
@@ -330,6 +331,7 @@ class YoutubeDownloadEngine(private val context: Context) {
             }
             addOption("--no-mtime")
             addOption("--no-playlist")
+            addOption("--concurrent-fragments", "4")
             addOption("-o", filenameTemplate)
 
             if (settings.useAria2c) {
@@ -363,10 +365,11 @@ class YoutubeDownloadEngine(private val context: Context) {
                 "%02d:%02d".format(etaInSeconds / 60, etaInSeconds % 60)
             } else ""
 
-            onProgress(progress.coerceIn(0f, 100f), speedStr, etaStr, currentStatus)
+            val displaySpeed = if (speedStr.isNotEmpty()) speedStr else "Downloading stream..."
+            onProgress(progress.coerceIn(0f, 100f), displaySpeed, etaStr, currentStatus)
         }
 
-        onProgress(10f, "Downloading stream...", "", DownloadStatus.DOWNLOADING)
+        onProgress(10f, "Downloading...", "", DownloadStatus.DOWNLOADING)
         val response = YoutubeDL.getInstance().execute(request, processId, progressCallback)
 
         Log.d(TAG, "YoutubeDL execute completed.")

@@ -16,7 +16,7 @@ val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "do
 data class AppSettings(
     val audioFormat: String = "mp3",
     val audioQuality: String = "320k",
-    val useAria2c: Boolean = true,
+    val useAria2c: Boolean = false,
     val concurrentDownloads: Int = 1,
     val autoApproveMatches: Boolean = false,
     val addMetadata: Boolean = true,
@@ -45,7 +45,7 @@ class SettingsDataStore(private val context: Context) {
         AppSettings(
             audioFormat = preferences[KEY_AUDIO_FORMAT] ?: "mp3",
             audioQuality = preferences[KEY_AUDIO_QUALITY] ?: "320k",
-            useAria2c = preferences[KEY_USE_ARIA2C] ?: true,
+            useAria2c = preferences[KEY_USE_ARIA2C] ?: false,
             concurrentDownloads = preferences[KEY_CONCURRENT_DOWNLOADS] ?: 1,
             autoApproveMatches = preferences[KEY_AUTO_APPROVE] ?: false,
             addMetadata = preferences[KEY_ADD_METADATA] ?: true,

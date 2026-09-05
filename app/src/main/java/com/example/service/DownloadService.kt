@@ -241,10 +241,19 @@ class DownloadService : Service() {
 
         try {
             var lastUpdateMillis = 0L
+            var lastStatus: DownloadStatus? = null
+            var lastSpeed: String? = null
+
             val downloadedFile: File = engine.downloadAudio(item, settings) { progress, speed, eta, status ->
                 val now = System.currentTimeMillis()
-                if (now - lastUpdateMillis > 350 || progress >= 99f) {
+                val statusChanged = status != lastStatus
+                val speedChanged = speed != lastSpeed
+                val timeElapsed = now - lastUpdateMillis > 250
+
+                if (timeElapsed || statusChanged || speedChanged || progress >= 99f) {
                     lastUpdateMillis = now
+                    lastStatus = status
+                    lastSpeed = speed
                     serviceScope.launch {
                         downloadDao.updateItem(
                             item.copy(
@@ -257,8 +266,10 @@ class DownloadService : Service() {
                     }
                     val statusText = if (status == DownloadStatus.EXTRACTING_AUDIO) {
                         "Extracting audio to ${settings.audioFormat.uppercase()}..."
-                    } else {
+                    } else if (speed.isNotBlank()) {
                         "$speed ${if (eta.isNotEmpty()) "• ETA $eta" else ""}".trim()
+                    } else {
+                        "Downloading..."
                     }
                     updateNotification("${item.songTitle} (${progress.toInt()}%)", progress.toInt(), statusText)
                 }
