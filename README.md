@@ -20,6 +20,7 @@
 ## 🌟 Overview
 
 **AudioFlow** is a sleek, distraction-free Android application focused purely on downloading high-quality audio streams. Powered under the hood by [yt-dlp](https://github.com/yt-dlp/yt-dlp) via [youtubedl-android](https://github.com/junkfood02/youtubedl-android), AudioFlow gives you reliable access to your favorite music, podcasts, and sound clips with full support for audio encoding in MP3, M4A, OPUS, FLAC and WAV.
+Note: **Generative AI** was used in the creation of this app.
 
 ---
 
