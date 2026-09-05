@@ -23,7 +23,9 @@ data class AppSettings(
     val embedThumbnail: Boolean = true,
     val lastKnownVersion: String = "yt-dlp core",
     val downloadBaseFolder: String = "Music",
-    val downloadSubfolder: String = "AudioFlow"
+    val downloadSubfolder: String = "AudioFlow",
+    val isOnboardingCompleted: Boolean = false,
+    val isLoaded: Boolean = false
 )
 
 class SettingsDataStore(private val context: Context) {
@@ -39,6 +41,7 @@ class SettingsDataStore(private val context: Context) {
         val KEY_LAST_KNOWN_VERSION = stringPreferencesKey("last_known_version")
         val KEY_DOWNLOAD_BASE_FOLDER = stringPreferencesKey("download_base_folder")
         val KEY_DOWNLOAD_SUBFOLDER = stringPreferencesKey("download_subfolder")
+        val KEY_ONBOARDING_COMPLETED = booleanPreferencesKey("onboarding_completed")
     }
 
     val settingsFlow: Flow<AppSettings> = context.dataStore.data.map { preferences ->
@@ -52,8 +55,14 @@ class SettingsDataStore(private val context: Context) {
             embedThumbnail = preferences[KEY_EMBED_THUMBNAIL] ?: true,
             lastKnownVersion = preferences[KEY_LAST_KNOWN_VERSION] ?: "yt-dlp core",
             downloadBaseFolder = preferences[KEY_DOWNLOAD_BASE_FOLDER] ?: "Music",
-            downloadSubfolder = preferences[KEY_DOWNLOAD_SUBFOLDER] ?: "AudioFlow"
+            downloadSubfolder = preferences[KEY_DOWNLOAD_SUBFOLDER] ?: "AudioFlow",
+            isOnboardingCompleted = preferences[KEY_ONBOARDING_COMPLETED] ?: false,
+            isLoaded = true
         )
+    }
+
+    suspend fun setOnboardingCompleted(completed: Boolean) {
+        context.dataStore.edit { it[KEY_ONBOARDING_COMPLETED] = completed }
     }
 
     suspend fun setAudioFormat(format: String) {

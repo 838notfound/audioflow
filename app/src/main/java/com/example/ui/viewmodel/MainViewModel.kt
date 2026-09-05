@@ -191,6 +191,12 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     // Settings actions
+    fun setOnboardingCompleted(completed: Boolean = true) {
+        viewModelScope.launch {
+            repository.settingsDataStore.setOnboardingCompleted(completed)
+        }
+    }
+
     fun setAudioFormat(format: String) {
         viewModelScope.launch {
             repository.settingsDataStore.setAudioFormat(format)

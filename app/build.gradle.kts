@@ -17,8 +17,8 @@ android {
     applicationId = "com.eightnf.audioflow"
     minSdk = 29
     targetSdk = 34
-    versionCode = 7
-    versionName = "0.3.1"
+    versionCode = 9
+    versionName = "0.4.0-release"
 
 
 
